@@ -327,8 +327,7 @@ def main():
 
     # Log on each process the small summary:
     logger.warning(
-        f"Process rank: {training_args.local_rank}, device: {training_args.device}, n_gpu: {training_args.n_gpu}"
-        f"distributed training: {bool(training_args.local_rank != -1)}, 16-bits training: {training_args.fp16}"
+        f"Process rank: {training_args.local_rank}, device: {training_args.device}, n_gpu: {training_args.n_gpu}distributed training: {training_args.local_rank != -1}, 16-bits training: {training_args.fp16}"
     )
     # Set the verbosity to info of the Transformers logger (on main process only):
     if is_main_process(training_args.local_rank):
@@ -381,7 +380,7 @@ def main():
         if chars_to_ignore_regex is not None:
             batch["target_text"] = re.sub(chars_to_ignore_regex, "", batch[data_args.text_column_name]).lower() + " "
         else:
-            batch["target_text"] = batch[data_args.text_column_name].lower() + " "
+            batch["target_text"] = f"{batch[data_args.text_column_name].lower()} "
         return batch
 
     with training_args.main_process_first(desc="dataset map special characters removal"):
