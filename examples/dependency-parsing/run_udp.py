@@ -126,7 +126,7 @@ def main():
         training_args.local_rank,
         training_args.device,
         training_args.n_gpu,
-        bool(training_args.local_rank != -1),
+        training_args.local_rank != -1,
         training_args.fp16,
     )
     logger.info("Training/evaluation parameters %s", training_args)
@@ -136,7 +136,7 @@ def main():
 
     # Prepare for UD dependency parsing task
     labels = UD_HEAD_LABELS
-    label_map: Dict[int, str] = {i: label for i, label in enumerate(labels)}
+    label_map: Dict[int, str] = dict(enumerate(labels))
     num_labels = len(labels)
 
     config = AutoConfig.from_pretrained(
@@ -164,7 +164,7 @@ def main():
     )
 
     # The task name (with prefix)
-    task_name = "ud_" + data_args.task_name
+    task_name = f"ud_{data_args.task_name}"
     language = adapter_args.language
 
     model = AutoModelWithHeads.from_pretrained(
@@ -231,12 +231,11 @@ def main():
             model.set_active_adapters(ac.Stack(lang_adapter_name, task_name))
         else:
             model.set_active_adapters(task_name)
-    else:
-        if adapter_args.load_adapter or adapter_args.load_lang_adapter:
-            raise ValueError(
-                "Adapters can only be loaded in adapters training mode."
-                "Use --train_adapter to enable adapter training"
-            )
+    elif adapter_args.load_adapter or adapter_args.load_lang_adapter:
+        raise ValueError(
+            "Adapters can only be loaded in adapters training mode."
+            "Use --train_adapter to enable adapter training"
+        )
 
     # Load and preprocess dataset
     dataset = load_dataset("universal_dependencies", data_args.task_name)
@@ -320,7 +319,7 @@ def main():
             else:
                 trainer.model = AutoModelWithHeads.from_pretrained(
                     os.path.join(training_args.output_dir, "best_model"),
-                    from_tf=bool(".ckpt" in model_args.model_name_or_path),
+                    from_tf=".ckpt" in model_args.model_name_or_path,
                     config=config,
                     cache_dir=model_args.cache_dir,
                 ).to(training_args.device)
